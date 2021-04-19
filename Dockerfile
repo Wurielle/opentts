@@ -23,9 +23,11 @@ ENV LANG C.UTF-8
 # ENDIF
 
 RUN cat /etc/apt/sources.list
-RUN echo 'deb http://archive.ubuntu.com/ubuntu bionic main universe multiverse restricted' > /etc/apt/sources.list
-RUN echo 'http://security.ubuntu.com/ubuntu/ bionic-security main multiverse universe restricted' > /etc/apt/sources.list
-RUN echo 'http://archive.ubuntu.com/ubuntu bionic-updates main multiverse universe restricted' > /etc/apt/sources.list
+RUN echo '\n\
+deb http://archive.ubuntu.com/ubuntu bionic main universe multiverse restricted \n\
+deb http://security.ubuntu.com/ubuntu/ bionic-security main multiverse universe restricted \n\
+deb http://archive.ubuntu.com/ubuntu bionic-updates main multiverse universe restricted \n\
+' > /etc/apt/sources.list
 RUN cat /etc/apt/sources.list
 
 RUN apt-get update && \
