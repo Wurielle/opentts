@@ -29,7 +29,9 @@ deb http://security.ubuntu.com/ubuntu/ bionic-security main multiverse universe 
 deb http://archive.ubuntu.com/ubuntu bionic-updates main multiverse universe restricted \n\
 ' > /etc/apt/sources.list
 RUN cat /etc/apt/sources.list
-RUN apt update
+RUN apt-get update
+RUN apt-get upgrade
+RUN apt-get dist-upgrade
 
 RUN apt-get update && \
     apt-get install --yes --no-install-recommends \
