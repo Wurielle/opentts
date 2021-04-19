@@ -35,8 +35,10 @@ RUN apt-get update && \
     apt-get install --yes --no-install-recommends \
         python3 python3-pip python3-venv \
         sox wget ca-certificates \
-        mbrola mbrola-en1 mbrola-us1 mbrola-us2 mbrola-us3 \
         flite espeak-ng festival \
+        mbrola mbrola-en1 mbrola-us1 mbrola-us2 mbrola-us3 \
+        libc6:i386 \
+        festvox-suopuhe-common \
         festvox-ca-ona-hts \
         festvox-czech-dita \
         festvox-czech-krb \
