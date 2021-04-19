@@ -29,18 +29,12 @@ deb http://security.ubuntu.com/ubuntu/ bionic-security main multiverse universe 
 deb http://archive.ubuntu.com/ubuntu bionic-updates main multiverse universe restricted \n\
 ' > /etc/apt/sources.list
 RUN cat /etc/apt/sources.list
-RUN apt-get update
-RUN apt-get upgrade -y
-RUN apt-get dist-upgrade -y
 
 RUN apt-get update && \
-    apt-get install --yes --no-install-recommends \
+    apt-get install --yes --no-install-recommends -f \
         python3 python3-pip python3-venv \
         sox wget ca-certificates \
         flite espeak-ng festival \
-        mbrola mbrola-en1 mbrola-us1 mbrola-us2 mbrola-us3 \
-        libdb1-compat tzdata \
-        festvox-suopuhe-common \
         festvox-ca-ona-hts \
         festvox-czech-dita \
         festvox-czech-krb \
