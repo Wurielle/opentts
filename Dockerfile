@@ -30,8 +30,8 @@ deb http://archive.ubuntu.com/ubuntu bionic-updates main multiverse universe res
 ' > /etc/apt/sources.list
 RUN cat /etc/apt/sources.list
 RUN apt-get update
-RUN apt-get upgrade
-RUN apt-get dist-upgrade
+RUN apt-get upgrade -y
+RUN apt-get dist-upgrade -y
 
 RUN apt-get update && \
     apt-get install --yes --no-install-recommends \
