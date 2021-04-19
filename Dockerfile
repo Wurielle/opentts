@@ -19,8 +19,14 @@ ARG TARGETVARIANT
 ENV LANG C.UTF-8
 
 # IFDEF PROXY
-RUN echo 'Acquire::http { Proxy "http://${PROXY}"; };' >> /etc/apt/apt.conf.d/01proxy
+#! RUN echo 'Acquire::http { Proxy "http://${PROXY}"; };' >> /etc/apt/apt.conf.d/01proxy
 # ENDIF
+
+RUN cat /etc/apt/sources.list
+RUN echo 'deb http://archive.ubuntu.com/ubuntu bionic main universe multiverse restricted' >> /etc/apt/sources.list
+RUN echo 'http://security.ubuntu.com/ubuntu/ bionic-security main multiverse universe restricted' >> /etc/apt/sources.list
+RUN echo 'http://archive.ubuntu.com/ubuntu bionic-updates main multiverse universe restricted' >> /etc/apt/sources.list
+RUN cat /etc/apt/sources.list
 
 RUN apt-get update && \
     apt-get install --yes --no-install-recommends \
