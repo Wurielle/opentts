@@ -8,7 +8,7 @@
 # not empty.
 #
 # The build-docker.sh script will optionally add apt/pypi proxies running locally:
-# * apt - https://docs.docker.com/engine/examples/apt-cacher-ng/ 
+# * apt - https://docs.docker.com/engine/examples/apt-cacher-ng/
 # * pypi - https://github.com/jayfk/docker-pypi-cache
 # -----------------------------------------------------------------------------
 
@@ -19,7 +19,7 @@ ARG TARGETVARIANT
 ENV LANG C.UTF-8
 
 # IFDEF PROXY
-#! RUN echo 'Acquire::http { Proxy "http://${PROXY}"; };' >> /etc/apt/apt.conf.d/01proxy
+RUN echo 'Acquire::http { Proxy "http://${PROXY}"; };' >> /etc/apt/apt.conf.d/01proxy
 # ENDIF
 
 RUN apt-get update && \

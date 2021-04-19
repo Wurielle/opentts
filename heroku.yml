@@ -1,5 +1,5 @@
 build:
   docker:
-    web: synesthesiam/opentts
+    web: Dockerfile
 run:
   web: docker-compose up
