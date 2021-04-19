@@ -37,7 +37,7 @@ RUN apt-get update && \
         sox wget ca-certificates \
         flite espeak-ng festival \
         mbrola mbrola-en1 mbrola-us1 mbrola-us2 mbrola-us3 \
-        libc6:i386 \
+        libdb1-compat tzdata \
         festvox-suopuhe-common \
         festvox-ca-ona-hts \
         festvox-czech-dita \
