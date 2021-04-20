@@ -12,67 +12,103 @@
 # * pypi - https://github.com/jayfk/docker-pypi-cache
 # -----------------------------------------------------------------------------
 
-FROM ubuntu:eoan
+FROM ubuntu:focal as build
 ARG TARGETARCH
 ARG TARGETVARIANT
 
 ENV LANG C.UTF-8
 
-# IFDEF PROXY
-#! RUN echo 'Acquire::http { Proxy "http://${PROXY}"; };' >> /etc/apt/apt.conf.d/01proxy
+# IFDEF APT_PROXY
+#! RUN echo 'Acquire::http { Proxy "http://${APT_PROXY_HOST}:${APT_PROXY_PORT}"; };' >> /etc/apt/apt.conf.d/01proxy
 # ENDIF
 
-RUN cat /etc/apt/sources.list
-RUN echo '\n\
-deb http://archive.ubuntu.com/ubuntu bionic main universe multiverse restricted \n\
-deb http://security.ubuntu.com/ubuntu/ bionic-security main multiverse universe restricted \n\
-deb http://archive.ubuntu.com/ubuntu bionic-updates main multiverse universe restricted \n\
-' > /etc/apt/sources.list
-RUN cat /etc/apt/sources.list
-
-RUN apt-get update && \
-    apt-get install --yes --no-install-recommends -f \
+RUN --mount=type=cache,target=/var/cache/apt \
+    apt-get update && \
+    apt-get install --yes --no-install-recommends \
         python3 python3-pip python3-venv \
-        sox wget ca-certificates \
-        flite espeak-ng festival \
-        festvox-ca-ona-hts \
-        festvox-czech-dita \
-        festvox-czech-krb \
-        festvox-czech-machac \
-        festvox-czech-ph \
-        festvox-don \
-        festvox-ellpc11k \
-        festvox-en1 \
-        festvox-kallpc16k \
-        festvox-kdlpc16k \
-        festvox-rablpc16k \
-        festvox-us1 \
-        festvox-us2 \
-        festvox-us3 \
-        festvox-us-slt-hts \
-        festvox-ru \
-        festvox-suopuhe-lj \
-        festvox-suopuhe-mv
+        wget ca-certificates
 
-# Install prebuilt nanoTTS
-RUN wget -O - --no-check-certificate \
-    "https://github.com/synesthesiam/prebuilt-apps/releases/download/v1.0/nanotts-20200520_${TARGETARCH}${TARGETVARIANT}.tar.gz" | \
-    tar -C /usr -xzf -
-
-# IFDEF PYPI
-#! ENV PIP_INDEX_URL=http://${PYPI}/simple/
-#! ENV PIP_TRUSTED_HOST=${PYPI_HOST}
+# IFDEF PYPI_PROXY
+#! ENV PIP_INDEX_URL=http://${PYPI_PROXY_HOST}:${PYPI_PROXY_PORT}/simple/
+#! ENV PIP_TRUSTED_HOST=${PYPI_PROXY_HOST}
 # ENDIF
 
 COPY requirements.txt /app/
 COPY scripts/create-venv.sh /app/scripts/
 
+# Copy cache
+COPY download/ /download/
+
+# Install prebuilt nanoTTS
+ENV NANOTTS_FILE=nanotts-20200520_${TARGETARCH}${TARGETVARIANT}.tar.gz
+
+RUN if [ ! -f "/download/${NANOTTS_FILE}" ]; then \
+        wget -O "/download/${NANOTTS_FILE}"  \
+            --no-check-certificate \
+            "https://github.com/synesthesiam/prebuilt-apps/releases/download/v1.0/${NANOTTS_FILE}"; \
+    fi
+
+RUN mkdir -p /nanotts && \
+    tar -C /nanotts -xf "/download/${NANOTTS_FILE}"
+
+
 # Install web server
-RUN cd /app && \
+ENV PIP_INSTALL='install -f /download'
+RUN --mount=type=cache,target=/root/.cache/pip \
+    cd /app && \
+    export PIP_VERSION='pip<=20.2.4' && \
     scripts/create-venv.sh
 
-# Copy other files
+# Delete extranous gruut data files
+COPY gruut /gruut/
+RUN mkdir -p /gruut && \
+    cd /gruut && \
+    find . -name lexicon.txt -delete
+
+# -----------------------------------------------------------------------------
+FROM ubuntu:focal as run
+ARG LANGUAGE
+
+ENV LANG C.UTF-8
+
+# IFDEF APT_PROXY
+#! RUN echo 'Acquire::http { Proxy "http://${APT_PROXY_HOST}:${APT_PROXY_PORT}"; };' >> /etc/apt/apt.conf.d/01proxy
+# ENDIF
+
+RUN --mount=type=cache,target=/var/cache/apt \
+    apt-get update && \ \
+    apt-get install --yes --no-install-recommends \
+        python3 python3-pip python3-venv \
+        sox flite espeak-ng
+
+RUN mkdir -p /app && echo "${LANGUAGE}" > /app/LANGUAGE
+
+COPY etc/ /app/etc/
+COPY scripts/install-packages.sh /app/
+RUN /app/install-packages.sh "${LANGUAGE}"
+
+# IFDEF APT_PROXY
+#! RUN rm -f /etc/apt/apt.conf.d/01proxy
+# ENDIF
+
+# Copy nanotts
+COPY --from=build /nanotts/ /usr/
+
+# Copy virtual environment
+COPY --from=build /app/ /app/
+
+# Copy gruut data files
+COPY --from=build /gruut/ /app/voices/larynx/gruut/
+
+# Copy voices
 COPY voices/ /app/voices/
+
+# Run post-installation script
+# May use files in /app/voices
+COPY scripts/post-install.sh /app/
+RUN /app/post-install.sh "${LANGUAGE}"
+
+# Copy other files
 COPY img/ /app/img/
 COPY css/ /app/css/
 COPY app.py tts.py swagger.yaml /app/
