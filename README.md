@@ -5,17 +5,9 @@ Unifies access to multiple open source text to speech systems and voices for man
 * [eSpeak](http://espeak.sourceforge.net)
     * Supports huge number of languages/locales, but sounds robotic
 * [flite](http://www.festvox.org/flite)
-    * English (19)
-    * Hindi (1)
-    * Bengali (1)
-    * Gujarati (3)
-    * Kannada (1)
-    * Marathi (2)
-    * Punjabi (1)
-    * Tamil (1)
-    * Telugu (3)
+    * English (19), Hindi (1), Bengali (1), Gujarati (3), Kannada (1), Marathi (2), Punjabi (1), Tamil (1), Telugu (3)
 * [Festival](http://www.cstr.ed.ac.uk/projects/festival/)
-    * English (9), Spanish (1), Catalan (1), Czech (4), Russian (1), Finnish (2)
+    * English (9), Spanish (1), Catalan (1), Czech (4), Russian (1), Finnish (2), Marathi (1), Telugu (1), Hindi (1), Italian (2)
     * Spanish/Catalan/Finnish use [ISO-8859-15 encoding](https://en.wikipedia.org/wiki/ISO/IEC_8859-15)
     * Czech uses [ISO-8859-2 encoding](https://en.wikipedia.org/wiki/ISO/IEC_8859-2)
     * Russian is [transliterated](https://pypi.org/project/transliterate/) from Cyrillic to Latin script automatically
@@ -23,12 +15,11 @@ Unifies access to multiple open source text to speech systems and voices for man
     * English (2), German (1), French (1), Italian (1), Spanish (1)
 * [MaryTTS](http://mary.dfki.de)
     * English (7), German (3), French (4), Italian (1), Russian (1), Swedish (1), Telugu (1), Turkish (1)
-    * External server required ([Docker image](https://hub.docker.com/r/synesthesiam/marytts))
-    * Add `--marytts-url` command-line argument
-* [Mozilla TTS](https://github.com/mozilla/TTS)
-    * English (1)
-    * External server required ([Docker image](https://hub.docker.com/r/synesthesiam/mozilla-tts), `amd64` only)
-    * Add `--mozillatts-url` command-line argument
+    * Includes [embedded MaryTTS](https://github.com/synesthesiam/marytts-txt2wav)
+* [Larynx](https://github.com/rhasspy/larynx-runtime)
+    * English (20), German (1), French (3), Spanish (2), Dutch (3), Russian (3), Swedish (1), Italian (2)
+    * Model types available: [GlowTTS](https://github.com/rhasspy/glow-tts-train)
+    * Vocoders available: [HiFi-Gan](https://github.com/rhasspy/hifi-gan-train) (3 levels of quality), [WaveGlow](https://github.com/rhasspy/waveglow)
     
 ![Web interface screenshot](img/screenshot.png "Screenshot")
 
@@ -50,31 +41,20 @@ Exclude eSpeak (robotic voices):
 $ docker run -it -p 5500:5500 synesthesiam/opentts --no-espeak
 ```
 
-### Adding MaryTTS and Mozilla TTS
+### WAV Cache
 
-Run using docker compose with [MaryTTS](https://hub.docker.com/r/synesthesiam/marytts) and [Mozilla TTS](https://hub.docker.com/r/synesthesiam/mozilla-tts):
+You can have the OpenTTS server cache WAV files with `--cache`:
 
-```yaml
-version: '2'
-services:
-  opentts:
-    image: synesthesiam/opentts
-    ports:
-      - 5500:5500
-    command: --marytts-url http://marytts:59125 --mozillatts-url http://mozillatts:5002
-    tty: true
-  marytts:
-    image: synesthesiam/marytts:5.2
-    tty: true
-  mozillatts:
-    image: synesthesiam/mozilla-tts
-    tty: true
+```bash
+$ docker run -it -p 5500:5500 synesthesiam/opentts --cache
 ```
 
-Visit http://localhost:5500 and choose language `en` then voices starting with `marytts:` or `mozillatts:`
+This will store WAV files in a temporary directory. A specific directory can also be used:
 
-**NOTE**: Mozilla TTS docker image only runs on `amd64` platforms (no Raspberry Pi).
-    
+```bash
+$ docker run -it -v /path/to/cache:/cache -p 5500:5500 synesthesiam/opentts --cache /cache
+```
+
 ## HTTP Endpoints
 
 See [swagger.yaml](swagger.yaml)
@@ -82,6 +62,7 @@ See [swagger.yaml](swagger.yaml)
 * `GET /api/tts`
     * `?voice` - voice in the form `tts:voice` (e.g., `espeak:en`)
     * `?text` - text to speak
+    * `?cache` - disable WAV cache with `false`
     * Returns `audio/wav` bytes
 * `GET /api/voices`
     * Returns JSON object
@@ -105,4 +86,6 @@ See [swagger.yaml](swagger.yaml)
     
 ## Voice Samples
 
-See [samples directory](samples/). eSpeak samples are not included since there are a lot of languages (and they all sound robotic).
+See [samples directory](samples/)
+
+eSpeak samples are not included since there are a lot of languages (and they all sound robotic).

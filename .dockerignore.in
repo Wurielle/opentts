@@ -1,0 +1,7 @@
+.venv/
+.git/
+__pycache__/
+voices/
+!voices/.gitkeep
+gruut/
+!gruut/.gitkeep
