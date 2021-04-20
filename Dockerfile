@@ -1,3 +1,4 @@
+# syntax=docker/dockerfile:experimental
 # -----------------------------------------------------------------------------
 # Dockerfile for OpenTTS (https://github.com/synesthesiam/opentts)
 # Requires Docker buildx: https://docs.docker.com/buildx/working-with-buildx/
